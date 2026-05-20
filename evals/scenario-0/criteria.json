@@ -1,0 +1,61 @@
+{
+  "context": "Tests whether the agent correctly implements a Kotlin debounce controller for Govee cloud bulbs: proper cloud min-interval, one controller per device, correct dispatcher, send-latest semantics, quantization of float to int before submit, and structured logging.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Separate controllers per device",
+      "description": "Two distinct DebounceController instances are created — one for each bulb ('alpha' and 'beta' or equivalent names) — rather than a single shared controller",
+      "max_score": 10
+    },
+    {
+      "name": "Cloud min-interval value",
+      "description": "minIntervalMs is set to 1200 (or 1_200) for both controllers — the correct value for Govee cloud APIs",
+      "max_score": 12
+    },
+    {
+      "name": "Tick rate 400ms",
+      "description": "tickMs is set to 400 (or 400L) — the correct default tick interval",
+      "max_score": 8
+    },
+    {
+      "name": "Stability filter 2 ticks",
+      "description": "stabilityTicks is set to 2 (the default) — not 1, 3, or omitted with a different value",
+      "max_score": 8
+    },
+    {
+      "name": "Dispatchers.IO for controller",
+      "description": "The controller coroutine is launched on Dispatchers.IO — NOT Dispatchers.Default or unspecified",
+      "max_score": 10
+    },
+    {
+      "name": "Float quantized before submit",
+      "description": "The occupancy Float is converted to an Int (via toInt(), coerceIn, or equivalent) BEFORE being passed to controller.submit() — submit() is never called with a Float or Double argument",
+      "max_score": 12
+    },
+    {
+      "name": "Quantization to device resolution",
+      "description": "Quantization maps the 0.0–1.0 float to a small discrete range (e.g. 0..6, 0..5, or similar ≤ 10 levels) appropriate for a bulb's brightness steps — NOT to 0..100 or the full Float range",
+      "max_score": 10
+    },
+    {
+      "name": "Send-latest, no queue",
+      "description": "The pending target is stored in a single @Volatile field (overwritten on each submit) rather than a Channel, Queue, or list — so only the latest intent is sent",
+      "max_score": 8
+    },
+    {
+      "name": "Producer non-blocking",
+      "description": "submit() returns immediately without suspending or blocking — no runBlocking{}, no delay(), no suspend modifier on submit()",
+      "max_score": 8
+    },
+    {
+      "name": "Structured logging apply event",
+      "description": "A log statement at INFO level records the successful application of each target (e.g. 'applied target=...')",
+      "max_score": 7
+    },
+    {
+      "name": "Logback/SLF4J dependency",
+      "description": "build.gradle.kts declares a dependency on ch.qos.logback:logback-classic (or the SLF4J API) for logging",
+      "max_score": 7
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "context": "Tests whether the agent correctly renders a bottom-up thermometer on a top-indexed 6-segment Govee H6056 LED bar, applies the correct 3-zone color gradient, uses the Govee-correct OFF value, and registers a shutdown hook.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Top-indexed lit formula",
+      "description": "The lit segment range is computed as `(total - lit) until total` (or equivalent: `(6 - lit) until 6`) — NOT `0 until lit` or `0..lit`",
+      "max_score": 15
+    },
+    {
+      "name": "Bottom-up fill direction",
+      "description": "When signal level increases, newly lit segments are at the HIGH-index end (physically lower on the device) — NOT at index 0 (which is physically at the top). The code does NOT use `forEachIndexed { i, _ -> if (i < lit) ... }` or `(0 until lit)` for the lit range",
+      "max_score": 12
+    },
+    {
+      "name": "Red zone always on",
+      "description": "The bottom zone (physically segments 4 and 5, or the last two high-index segments) is set to RED whenever any level > 0 — it does NOT turn off at low levels",
+      "max_score": 10
+    },
+    {
+      "name": "Yellow middle zone",
+      "description": "The middle zone (segments 2 and 3, or equivalent) is set to YELLOW when level >= 1, and to OFF otherwise",
+      "max_score": 10
+    },
+    {
+      "name": "Green top zone",
+      "description": "The top zone (segments 0 and 1, or equivalent) is set to GREEN when level >= 2, and to OFF otherwise",
+      "max_score": 10
+    },
+    {
+      "name": "Govee OFF value",
+      "description": "The OFF color is defined as Triple(1, 1, 1) or rgb(1, 1, 1) — NOT Triple(0, 0, 0) or Color.BLACK or any zero-RGB value",
+      "max_score": 15
+    },
+    {
+      "name": "Shutdown hook registered",
+      "description": "A JVM shutdown hook is registered via Runtime.getRuntime().addShutdownHook(...) that sends an off command to all segments",
+      "max_score": 12
+    },
+    {
+      "name": "Ktor CIO dependency",
+      "description": "build.gradle.kts declares io.ktor:ktor-client-cio (or io.ktor:ktor-client-core) as a dependency — not OkHttp, Apache HttpClient, or java.net.HttpURLConnection",
+      "max_score": 8
+    },
+    {
+      "name": "Logback/SLF4J dependency",
+      "description": "build.gradle.kts includes ch.qos.logback:logback-classic or equivalent SLF4J implementation",
+      "max_score": 8
+    }
+  ]
+}

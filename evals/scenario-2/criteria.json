@@ -1,0 +1,56 @@
+{
+  "context": "Tests whether the agent correctly identifies and fixes a stalled debounce controller: the root cause is passing raw Float to submit() which prevents the stability filter from ever committing. Also checks correct cloud min-interval, Dispatchers.IO, quantization to device resolution, structured logging, and diagnostic instrumentation.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Float quantized to Int",
+      "description": "In fixed/AudioMeter.kt, the Float RMS value is converted to an Int (using toInt(), coerceIn(), or equivalent) BEFORE being passed to submit() — submit() is no longer called with a Float",
+      "max_score": 15
+    },
+    {
+      "name": "Quantize to 0..6 range",
+      "description": "The quantization maps the input to at most 7 distinct values (0 through 6) matching the 6-segment bar — NOT to a range of 0..100, 0..255, or any range with more than ~10 levels",
+      "max_score": 10
+    },
+    {
+      "name": "Cloud min-interval corrected",
+      "description": "minIntervalMs is changed from 200 to 1200 (or 1_200) in the fixed version — the correct value for Govee cloud APIs",
+      "max_score": 12
+    },
+    {
+      "name": "Dispatchers.IO for controller",
+      "description": "In fixed/AudioMeter.kt, the controller coroutine is launched on Dispatchers.IO — NOT Dispatchers.Default as in the original",
+      "max_score": 10
+    },
+    {
+      "name": "Diagnosis identifies Float issue",
+      "description": "diagnosis.md explicitly identifies that raw Float values were passed to submit(), preventing the stability filter's equality check from ever succeeding",
+      "max_score": 12
+    },
+    {
+      "name": "Diagnosis identifies wrong min-interval",
+      "description": "diagnosis.md identifies that minIntervalMs=200 is wrong for Govee cloud (which requires 1200ms) and explains this causes potential 429 errors",
+      "max_score": 8
+    },
+    {
+      "name": "Diagnosis identifies wrong dispatcher",
+      "description": "diagnosis.md identifies that Dispatchers.Default is incorrect for IO-bound HTTP work and should be Dispatchers.IO",
+      "max_score": 8
+    },
+    {
+      "name": "Distinct-value diagnostic logging",
+      "description": "fixed/AudioMeter.kt includes code that tracks and logs distinct submitted values (e.g. using a ConcurrentHashMap keyset, or logging a seen-values count) to verify quantization is working",
+      "max_score": 10
+    },
+    {
+      "name": "Structured apply/throttle logging",
+      "description": "fixed/AudioMeter.kt logs apply events at INFO level and throttle or skip events at WARN or DEBUG level using SLF4J or Logback — NOT just println()",
+      "max_score": 8
+    },
+    {
+      "name": "Logback dependency added",
+      "description": "fixed/build.gradle.kts adds ch.qos.logback:logback-classic (or SLF4J) as a dependency — missing from the original build file",
+      "max_score": 7
+    }
+  ]
+}

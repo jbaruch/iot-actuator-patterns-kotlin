@@ -1,6 +1,6 @@
 {
   "name": "jbaruch/iot-actuator-patterns-kotlin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "summary": "Kotlin/coroutines patterns for driving rate-limited IoT actuators from real-time producers: debounce controller, target quantization, bottom-up progress-bar rendering.",
   "private": false,
   "rules": {
